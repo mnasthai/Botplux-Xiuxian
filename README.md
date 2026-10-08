@@ -2,7 +2,7 @@
 
 # 🧙 Plux 修仙插件
 
-### 群聊里的修仙游戏：从引气到渡劫，从单人到多人副本
+### 群聊里的修仙游戏：从引气到渡劫，到多人副本
 
 [![Distribution](https://img.shields.io/badge/Distribution-plux--xiuxian-blue.svg?style=flat-square)](#)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg?style=flat-square&logo=python)](https://www.python.org/)
@@ -22,10 +22,7 @@
 
 一个跑在微信群里的文字修仙游戏，作为 **Botplux 的独立插件**分发（分发名 `plux-xiuxian`，入口 `plux_plugins.xiuxian:XiuxianPlugin`）。
 
-游戏状态全部落在插件自己的数据库表与快照里：角色、修炼、经济、法宝、道具、魔契、引雷斗法、围观竞猜、PVP、多人副本。框架只负责收发消息与事务，插件不依赖框架的任何实现模块，也不依赖旧 `wechat_receiver` 代码。
-
-> [!IMPORTANT]
-> 这是**进程内可信代码**，没有沙箱。所有数值、冷却与结算规则都在插件内实现，改动前先读 §边界与限制。
+游戏状态全部落在插件自己的数据库表与快照里：角色、修炼、经济、法宝、道具、魔契、引雷斗法、围观竞猜、PVP、多人副本。框架只负责收发消息与事务，插件不依赖框架的任何实现模块。
 
 ---
 
@@ -65,11 +62,11 @@ python -m plux --config config\plux.xiuxian.toml check
 python -m plux --config config\plux.xiuxian.toml run --once
 ```
 
-`check` 校验配置、manifest 与注册声明，**不会创建数据库、不会连接原生管道**。首次运行时框架先执行插件声明的 schema 迁移、加载规则与内容，再恢复长流程；相对路径以配置文件所在目录为基准，本配置的运行目录是 `<本仓库>\runtime`。
+`check` 校验配置、manifest 与注册声明。首次运行时框架先执行插件声明加载规则与内容，相对路径以配置文件所在目录为基准，本配置的运行目录是 `<本仓库>\runtime`。
 
 ### 图卡可选能力
 
-`visual_cards_enabled = true` 时，角色与仙榜回复改为持久后台任务渲染的 PNG，模板与组件随包分发（构建产物含 20 张 PNG 与副本内容 JSON）。启动时会检查图卡依赖与背景资源，缺失时直接报配置错误，不会静默降级。默认 `false`，走纯文本回复。
+`visual_cards_enabled = true` 时，角色与仙榜回复改为持久后台任务渲染的 PNG，模板与组件随包分发（构建产物含 20 张 PNG 与副本内容 JSON）。启动时会检查图卡依赖与背景资源，缺失时直接报配置错误，默认 `false`，走纯文本回复。
 
 ---
 
@@ -82,7 +79,7 @@ python -m plux --config config\plux.xiuxian.toml run --once
 account = "wxid_example"                    # 必须与插件 config 相同，且精确等于登录 wxid
 allowed_targets = ["example@chatroom"]      # 只有列在这里的会话会被回复
 group_requires_mention = false              # 游戏命令由群成员直接输入
-allow_unknown_history = true                # schema 2 无法证明消息实时性
+allow_unknown_history = true
 
 [[plugins]]
 entrypoint = "plux_plugins.xiuxian:XiuxianPlugin"
@@ -105,10 +102,8 @@ visual_cards_enabled = false
 | `rules` | 游戏规则，字段见 [domain/config.py](src/plux_plugins/xiuxian/domain/config.py) |
 
 > [!WARNING]
-> 平台侧还要满足三件事，否则表现为「命令有响应但发不出去」或「命令完全不触发」：
-> `[policy].allowed_targets` 必须包含游戏群；`observer.enabled` / `send_enabled` 必须打开；涉及玩家的 `@` 必须有原生 `msg_source` 里的真实提醒证据，可见昵称文字不会授权目标玩家。
-
-规则在启动时校验并发布为**带版本的不可变快照**，业务与图卡共用同一份。未覆盖字段取默认值；未知字段、重复身份和非法取值会被拒绝。重启时若仍有进行中的斗法、PVP 或副本，插件整体继续使用上一次绑定的规则；活动结束后再重启才应用新规则。活动期间更换已安装的法宝、道具或副本内容会拒绝启动——避免用新内容解释旧活动。
+> 平台侧还要满足三件事，否则表现为「命令有响应但发不出去」或「命令完全不触发」
+> `[policy].allowed_targets` 必须包含游戏群；`observer.enabled` / `send_enabled` 必须打开
 
 ---
 
@@ -129,7 +124,7 @@ visual_cards_enabled = false
 | 职业与灵根 | `#职业`、`#职业 详情 职业名或C编号`、`#灵根`、`#灵根领取`、`#灵根装配`、`#灵根卸下`、`#灵根兑换` |
 | 副本决策 | `#副本选择 阶段编号 1～3`、`#副本选宝 阶段编号 1～3`、`#副本行动 阶段编号 动作 [目标]` |
 
-玩家、资产、冷却、押注、战绩与活动都按「账号 + 群身份」归属。副本决策必须带提示中的阶段编号，迟到的旧阶段操作不会推进下一阶段。
+玩家、资产、冷却、押注、战绩与活动都按「账号 + 群身份」归属。
 
 ---
 
@@ -145,23 +140,6 @@ src/plux_plugins/xiuxian/
 ├── presentation/      文本渲染、图卡计划与渲染器
 └── resources/         图卡模板与组件、副本内容 JSON
 ```
-
-分层是单向的：`plugin` 只装配，`domain` 不碰数据库，`persistence` 只把仓储绑定到当前工作单元，`presentation` 只产出文本与不可变的图卡计划。插件不导入 Plux 实现模块，也不导入其他插件的内部代码。
-
----
-
-## 🔒 边界与限制
-
-> [!NOTE]
-> 下面这些是**有意的设计边界**，不是待修的缺陷。
-
-- **事务边界**：业务变更、输入消费、回复与新任务在同一个事务提交。回复入队失败会回滚角色或经济操作；命令处理器不建表、不渲染图片、不发布文件。
-- **幂等**：稳定的事件键、回复键与任务键保证重启或重复输入不会重复发奖励；副本结算与奖励有幂等边界。
-- **托管资金**：PVP 双方押金由插件托管，只在确定结算或取消时处理；斗法的支持退款与持久通知受同一事务约束。
-- **`accepted` 不等于送达**：斗法提示以原生 `accepted` 的尝试时间开启应答阶段，而 `accepted` 只表示本地提交成功。会话变化或发送结果不确定时走技术取消与一次性补偿；已尝试发送的提示不会被当作未发送而撤销或自动重放。
-- **积压保护**：轮询发现还有持久输入或源日志未读完时，暂缓会受积压影响的超时结算；期限内捕获而延迟处理的 PVP 应答按**捕获时间**判断，避免处理延迟造成错误超时。
-- **图卡与状态解耦**：后台任务在事务外渲染并发布不可变资产，结果快照持有资源引用，提交时转交回复队列；PNG 文件路径不会成为业务命令的状态。
-- **未做真机验证**：测试用临时数据库与普通 IPC 宿主，没有启动微信、没有真实发送、没有转换生产数据。真实群内交互、Hook 行为与长期运行仍需部署验证。
 
 ---
 
@@ -189,4 +167,4 @@ python -m unittest discover -s tests -t tests -p 'test_*.py'
 | 项目 | 关系 |
 | :--- | :--- |
 | [Botplux](https://github.com/mnasthai/Botplux) | 本插件运行的 Python 运行时：消息、事务、任务与插件契约 |
-| IRIS | 注入微信进程内的 C++ 后端，提供真正的收发通道（私有仓库） |
+| [IRIS](https://github.com/mnasthai/IRIS) | 注入微信进程内的 C++ 后端 |
