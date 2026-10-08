@@ -1,0 +1,37 @@
+# 修仙插件的最小运行配置：只加载本插件，默认关闭原生连接与发送。
+# 接入前把示例内部 ID 换成真实值，并让 [policy] 与插件 config 保持一致。
+[paths]
+runtime_root = "../runtime"
+
+[observer]
+enabled = false
+send_enabled = false
+media_send_enabled = false
+
+[policy]
+# 必须与插件 config 里的 account 相同，且精确等于登录 wxid。
+account = "wxid_example"
+# 只有列在这里的会话才会被回复，必须包含插件要服务的群。
+allowed_targets = ["example@chatroom"]
+# 游戏命令由群成员直接输入，不要求先 @ 机器人。
+group_requires_mention = false
+# IRIS 事件 schema 2 无法证明消息是实时还是历史，置 true 才允许执行命令。
+allow_unknown_history = true
+
+[runtime]
+poll_seconds = 0.2
+stop_timeout_seconds = 10
+batch_size = 100
+
+[[plugins]]
+entrypoint = "plux_plugins.xiuxian:XiuxianPlugin"
+
+[plugins.config]
+account = "wxid_example"
+groups = ["example@chatroom"]
+admin_ids = []
+
+[plugins.config.rules]
+duel_enabled = true
+# 置 true 前先安装 visual extra（Pillow），否则启动时报配置错误。
+visual_cards_enabled = false

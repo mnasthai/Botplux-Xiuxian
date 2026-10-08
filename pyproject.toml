@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plux-xiuxian"
+version = "0.1.0"
+description = "Independent cultivation, PvP and dungeon plugin for Plux"
+requires-python = ">=3.11"
+dependencies = ["plux-framework>=0.1,<0.2"]
+
+[project.optional-dependencies]
+visual = ["Pillow>=11,<13"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["plux_plugins.xiuxian", "plux_plugins.xiuxian.*"]
+
+[tool.setuptools.package-data]
+"plux_plugins.xiuxian" = ["application/dungeon/content_catalog.json", "resources/visual/v2/templates/*.png", "resources/visual/v2/components/*.png", "resources/visual/v3/*.png", "resources/visual/v2/README.md", "resources/visual/v3/README.md"]
