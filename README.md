@@ -26,16 +26,16 @@
 
 ---
 
-## 🌟 它能做什么
+## 🌟 游戏内容
 
-- 🧘 **角色与成长** —— 创建道号、境界与修为、突破、自主修炼、采矿、仙榜排名；
-- 💎 **经济与商店** —— 灵石收支、商店购买、道具使用、储物袋上限；
-- 🗡️ **法宝与探索** —— 秘境探索、宝录、法宝装配与献宝、稀有度掉落权重；
-- 👹 **魔契** —— 可分层深化的契约，带每日代价与历史记录；
-- ⚡ **引雷斗法** —— 邀请、应答、回合制对抗，围观者可押注并结算退款；
-- 🤝 **PVP 决斗** —— 双方押金托管，多回合推进、超时与投降分支；
-- 🏰 **多人副本** —— 组队、准备、出发、阶段决策、选宝与结算，重启后可继续；
-- 🖼️ **图卡（可选）** —— 角色与仙榜回复可渲染成 PNG，由持久后台任务生成。
+- 🧘 **角色与成长** —— 创建角色、境界与修为、突破、自主修炼、采矿、仙榜排名；
+- 💎 **经济与商店** —— 灵石收支、商店购买、道具使用；
+- 🗡️ **法宝与探索** —— 秘境探索、宝录、法宝装配与献宝；
+- 👹 **魔契** —— 魔鬼的契约；
+- ⚡ **引雷斗法** —— 回合制对抗；
+- 🤝 **PVP 决斗** —— PVP；
+- 🏰 **多人副本** —— 多人共斗；
+- 🖼️ **图卡（可选）** —— 角色与仙榜回复可渲染成 PNG。
 
 ---
 
@@ -62,11 +62,9 @@ python -m plux --config config\plux.xiuxian.toml check
 python -m plux --config config\plux.xiuxian.toml run --once
 ```
 
-`check` 校验配置、manifest 与注册声明。首次运行时框架先执行插件声明加载规则与内容，相对路径以配置文件所在目录为基准，本配置的运行目录是 `<本仓库>\runtime`。
-
 ### 图卡可选能力
 
-`visual_cards_enabled = true` 时，角色与仙榜回复改为持久后台任务渲染的 PNG，模板与组件随包分发（构建产物含 20 张 PNG 与副本内容 JSON）。启动时会检查图卡依赖与背景资源，缺失时直接报配置错误，默认 `false`，走纯文本回复。
+`visual_cards_enabled = true` 时，角色与仙榜回复改为持久后台任务渲染的 PNG。启动时会检查图卡依赖与背景资源，缺失时直接报配置错误，默认 `false`，走纯文本回复。
 
 ---
 
@@ -102,14 +100,14 @@ visual_cards_enabled = false
 | `rules` | 游戏规则，字段见 [domain/config.py](src/plux_plugins/xiuxian/domain/config.py) |
 
 > [!WARNING]
-> 平台侧还要满足三件事，否则表现为「命令有响应但发不出去」或「命令完全不触发」
+> 平台侧还要满 否则表现为「命令有响应但发不出去」或「命令完全不触发」
 > `[policy].allowed_targets` 必须包含游戏群；`observer.enabled` / `send_enabled` 必须打开
 
 ---
 
 ## 🎮 游戏命令
 
-游戏内 `#修仙帮助`、分类帮助与 `#副本帮助` 会给出完整规则和当轮编号。严格解析见 [domain/commands.py](src/plux_plugins/xiuxian/domain/commands.py)。
+游戏内 `#修仙帮助`、分类帮助与 `#副本帮助` 严格解析见 [domain/commands.py](src/plux_plugins/xiuxian/domain/commands.py)。
 
 | 玩法 | 常用命令 |
 | :--- | :--- |
@@ -134,9 +132,9 @@ visual_cards_enabled = false
 src/plux_plugins/xiuxian/
 ├── plugin.py          装配服务、注册命令/计划/任务、处理生命周期
 ├── settings.py        配置校验与规则快照构建
-├── domain/            规则、内容、命令解析（纯逻辑，无 IO）
+├── domain/            规则、内容、命令解析
 ├── application/       用例：角色、成长、经济、背包、斗法、PVP、副本
-├── persistence/       仓储与 schema 迁移（绑定当前事务）
+├── persistence/       仓储与 schema 迁移
 ├── presentation/      文本渲染、图卡计划与渲染器
 └── resources/         图卡模板与组件、副本内容 JSON
 ```
@@ -157,8 +155,6 @@ python -m unittest discover -s tests -t tests -p 'test_*.py'
 | `test_flows.py` | 成长、经济、法宝道具、斗法、PVP、副本流程 |
 | `test_migration.py` | schema 迁移与旧数据兼容 |
 | `test_plugin.py` | 装配、事务回滚、策略门禁、后台图卡 |
-
-实测：**59 项全部通过**（含 1 项需要 Pillow 的图卡用例，缺少 Pillow 时该项会以明确的配置错误失败而不是静默跳过）。框架自身的 54 项测试见 Botplux 仓库。
 
 ---
 
